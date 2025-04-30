@@ -1,4 +1,5 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Google.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Orleans.Runtime;
 using Orleans.Serialization;
 using OrleansShopDemo.Grains.Cart;
 using OrleansShopDemo.Grains.Cart.Interfaces;
@@ -55,6 +57,7 @@ namespace OrleansShopDemo
 
                 builder.Services.AddGrpc();
                 builder.Services.AddGrpcReflection();
+                builder.Services.AddSingleton<PlacementStrategy, ResourceOptimizedPlacement>();
                 builder.Services.AddScoped<ICurrencyGrain, CurrencyGrain>();
                 builder.Services.AddScoped<IProductCatalogGrain, ProductCatalogGrain>();
                 builder.Services.AddScoped<IPaymentGrain, PaymentGrain>();
