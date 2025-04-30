@@ -1,0 +1,5 @@
+https://github.com/dotnet/orleans/blob/main/src/AdoNet/Shared/SQLServer-Main.sql
+
+https://github.com/dotnet/orleans/blob/main/src/AdoNet/Orleans.Clustering.AdoNet/SQLServer-Clustering.sql
+
+https://github.com/dotnet/orleans/blob/main/src/AdoNet/Orleans.Clustering.AdoNet/Migrations/MySQL-Clustering-3.7.0.sql
