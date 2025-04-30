@@ -55,7 +55,7 @@ namespace OrleansShopDemo
 
                 builder.Services.AddGrpc();
                 builder.Services.AddGrpcReflection();
-                //builder.Services.AddScoped<ICurrencyGrain, CurrencyGrain>();
+                builder.Services.AddScoped<ICurrencyGrain, CurrencyGrain>();
                 builder.Services.AddScoped<IProductCatalogGrain, ProductCatalogGrain>();
                 builder.Services.AddScoped<IPaymentGrain, PaymentGrain>();
                 builder.Services.AddScoped<ICartGrain, CartGrain>();
