@@ -13,7 +13,7 @@ This project compares **Microsoft Orleans** and **Akka.NET** for actor-based dis
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/)
+- [.NET 9 SDK](https://dotnet.microsoft.com/)
 - [Go](https://golang.org/)
 - [Python 3.x](https://www.python.org/)
 - [Docker](https://www.docker.com/) (for running Orleans MembershipTable with Redis or SQL)
