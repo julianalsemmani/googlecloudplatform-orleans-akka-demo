@@ -17,6 +17,7 @@ This project compares **Microsoft Orleans** and **Akka.NET** for actor-based dis
 - [Go](https://golang.org/)
 - [Python 3.x](https://www.python.org/)
 - [Docker](https://www.docker.com/) (for running Orleans MembershipTable with Redis or SQL)
+- [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (For running OrleansMembershipTable)
 
 ### Build & Run
 
@@ -55,11 +56,11 @@ Use **ShopLoadGenerator** to simulate realistic traffic using Locust. You can al
 > This project is **not** hosted on Google Cloud — it is architecturally inspired by GCP’s Online Boutique demo.
 
 > **Important**  
-> The Orleans service requires a **MembershipTable** backend, such as **Redis** or **SQL Server**, for clustering.
+> The Orleans service requires a **MembershipTable**, such as **Redis** or **SQL Server**, for clustering.
 
 
 > **Configuration**  
-> This project uses **SQL Server** as the MembershipTable backend for Orleans.  
+> This project uses **SQL Server** as the MembershipTable for Orleans.  
 > Configuration details can be found in `appsettings.json` within the `OrleansShopDemo` project.
 
 > **Schema**  
