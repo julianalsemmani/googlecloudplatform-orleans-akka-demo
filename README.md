@@ -48,7 +48,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-**Benchmarking**
+## Benchmarking
 Use **ShopLoadGenerator** to simulate realistic traffic using Locust. You can also integrate tools like k6 externally to collect performance metrics.
 
 ## Notes
