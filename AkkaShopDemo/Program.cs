@@ -1,4 +1,7 @@
+using Akka.Actor;
 using Akka.Cluster.Hosting;
+using Akka.Cluster.Sharding;
+using Akka.DependencyInjection;
 using Akka.Discovery.Config.Hosting;
 using Akka.Hosting;
 using Akka.Management;
@@ -11,6 +14,7 @@ using AkkaShopDemo.Actors.Payment;
 using AkkaShopDemo.Actors.ProductCatalog;
 using AkkaShopDemo.Actors.Recommendation;
 using AkkaShopDemo.Actors.Shipping;
+using AkkaShopDemo.Extractor;
 using AkkaShopDemo.Services;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -60,6 +64,7 @@ namespace AkkaShopDemo
 
                 builder.Services.AddGrpc();
                 builder.Services.AddGrpcReflection();
+                var serviceProvider = builder.Services.BuildServiceProvider();
                 builder.Services.AddAkka("AkkaShopDemo", configurationBuilder =>
                 {
                     const int remotingPort = 8110;
@@ -69,7 +74,8 @@ namespace AkkaShopDemo
                     if (builder.Environment.IsDevelopment())
                     {
                         hostname = "localhost";
-                    } else
+                    }
+                    else
                     {
                         hostname = GetPublicIpAddress();
                     }
@@ -103,35 +109,57 @@ namespace AkkaShopDemo
                         .WithClustering()
                         .WithActors((system, registry, resolver) =>
                         {
-                            var cartActorProps = resolver.Props<CartActor>();
-                            var cartActor = system.ActorOf(cartActorProps, "cartActor");
+                            var sp = serviceProvider; // hentet utenfor
 
-                            var checkoutActorProps = resolver.Props<CheckoutActor>();
-                            var checkoutActor = system.ActorOf(checkoutActorProps, "checkoutActor");
+                            var sharding = ClusterSharding.Get(system);
+                            var settings = ClusterShardingSettings.Create(system).WithRememberEntities(true);
 
-                            var productCatalogActorProps = resolver.Props<ProductCatalogActor>();
-                            var productCatalogActor = system.ActorOf(productCatalogActorProps, "productCatalogActor");
+                            // 1. Start sharded CartActor
+                            var cartRegion = sharding.Start(
+                                typeName: nameof(CartActor),
+                                entityPropsFactory: entityId => Props.Create(() => new CartActor(sp.GetRequiredService<ILogger<CartActor>>())),
+                                settings: settings,
+                                messageExtractor: new CartMessageExtractor()
+                            );
+                            registry.Register<CartActor>(cartRegion);
 
-                            var recommendationActorProps = resolver.Props<RecommendationActor>();
-                            var recommendationActor = system.ActorOf(recommendationActorProps, "recommendationActor");
+                            // 2. Start sharded CheckoutActor
+                            var checkoutRegion = sharding.Start(
+                                typeName: nameof(CheckoutActor),
+                                entityPropsFactory: entityId => resolver.Props<CheckoutActor>(),
+                                settings: settings,
+                                messageExtractor: new CheckoutMessageExtractor()
+                            );
+                            registry.Register<CheckoutActor>(checkoutRegion);
 
-                            var shippingActorProps = resolver.Props<ShippingActor>();
-                            var shippingActor = system.ActorOf(shippingActorProps, "shippingActor");
+                            // 3. Start sharded ShippingActor
+                            var shippingRegion = sharding.Start(
+                                typeName: nameof(ShippingActor),
+                                entityPropsFactory: entityId => Props.Create(() => new ShippingActor(sp.GetRequiredService<ILogger<ShippingActor>>())),
+                                settings: settings,
+                                messageExtractor: new ShippingMessageExtractor()
+                            );
+                            registry.Register<ShippingActor>(shippingRegion);
 
-                            var paymentActorProps = resolver.Props<PaymentActor>();
-                            var paymentActor = system.ActorOf(paymentActorProps, "paymentActor");
+                            // 4. Start sharded PaymentActor
+                            var paymentRegion = sharding.Start(
+                                typeName: nameof(PaymentActor),
+                                entityPropsFactory: entityId => Props.Create(() => new PaymentActor(sp.GetRequiredService<ILogger<PaymentActor>>())),
+                                settings: settings,
+                                messageExtractor: new PaymentMessageExtractor()
+                            );
+                            registry.Register<PaymentActor>(paymentRegion);
 
-                            var currencyActorProps = resolver.Props<CurrencyActor>();
-                            var currencyActor = system.ActorOf(currencyActorProps, "currencyActor");
+                            // 5. Singleton actors (ikke sharded)
+                            var currencyActor = system.ActorOf(resolver.Props<CurrencyActor>(), "currencyActor");
+                            var productCatalogActor = system.ActorOf(resolver.Props<ProductCatalogActor>(), "productCatalogActor");
+                            var recommendationActor = system.ActorOf(resolver.Props<RecommendationActor>(), "recommendationActor");
 
-                            registry.Register<CartActor>(cartActor);
-                            registry.Register<CheckoutActor>(checkoutActor);
+                            registry.Register<CurrencyActor>(currencyActor);
                             registry.Register<ProductCatalogActor>(productCatalogActor);
                             registry.Register<RecommendationActor>(recommendationActor);
-                            registry.Register<ShippingActor>(shippingActor);
-                            registry.Register<PaymentActor>(paymentActor);
-                            registry.Register<CurrencyActor>(currencyActor);
                         });
+
                 });
 
                 var app = builder.Build();
