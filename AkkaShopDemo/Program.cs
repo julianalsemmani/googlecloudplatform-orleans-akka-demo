@@ -114,7 +114,6 @@ namespace AkkaShopDemo
                             var sharding = ClusterSharding.Get(system);
                             var settings = ClusterShardingSettings.Create(system).WithRememberEntities(true);
 
-                            // 1. Start sharded CartActor
                             var cartRegion = sharding.Start(
                                 typeName: nameof(CartActor),
                                 entityPropsFactory: entityId => Props.Create(() => new CartActor(sp.GetRequiredService<ILogger<CartActor>>())),
@@ -123,7 +122,6 @@ namespace AkkaShopDemo
                             );
                             registry.Register<CartActor>(cartRegion);
 
-                            // 2. Start sharded CheckoutActor
                             var checkoutRegion = sharding.Start(
                                 typeName: nameof(CheckoutActor),
                                 entityPropsFactory: entityId => resolver.Props<CheckoutActor>(),
@@ -132,7 +130,6 @@ namespace AkkaShopDemo
                             );
                             registry.Register<CheckoutActor>(checkoutRegion);
 
-                            // 3. Start sharded ShippingActor
                             var shippingRegion = sharding.Start(
                                 typeName: nameof(ShippingActor),
                                 entityPropsFactory: entityId => Props.Create(() => new ShippingActor(sp.GetRequiredService<ILogger<ShippingActor>>())),
@@ -141,7 +138,6 @@ namespace AkkaShopDemo
                             );
                             registry.Register<ShippingActor>(shippingRegion);
 
-                            // 4. Start sharded PaymentActor
                             var paymentRegion = sharding.Start(
                                 typeName: nameof(PaymentActor),
                                 entityPropsFactory: entityId => Props.Create(() => new PaymentActor(sp.GetRequiredService<ILogger<PaymentActor>>())),
@@ -150,7 +146,6 @@ namespace AkkaShopDemo
                             );
                             registry.Register<PaymentActor>(paymentRegion);
 
-                            // 5. Singleton actors (ikke sharded)
                             var currencyActor = system.ActorOf(resolver.Props<CurrencyActor>(), "currencyActor");
                             var productCatalogActor = system.ActorOf(resolver.Props<ProductCatalogActor>(), "productCatalogActor");
                             var recommendationActor = system.ActorOf(resolver.Props<RecommendationActor>(), "recommendationActor");
